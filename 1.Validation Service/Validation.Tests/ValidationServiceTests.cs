@@ -1,116 +1,119 @@
 ﻿using System;
+using DIResolver;
+using Ninject;
 using NUnit.Framework;
 using Validation.Attributes;
+using Validation.Interfaces;
 using Validation.Service;
 using Validation.Service.Helpers;
+using Moq;
+using Loggers;
 
 namespace Validation.Tests
 {
     [TestFixture]
     public class ValidationServiceTests
     {
-        [Test]
-        public void Service_Where_Person_IsCorrect()
-        {
-            Person person = new Person("12345", "Alexey", 19);
+        private static readonly IKernel _kernel = new StandardKernel();
+        private readonly IValidationService<Person> personValidation;
 
-            ValidationService<Person> personValidation = new ValidationService<Person>();
+        public ValidationServiceTests()
+        {
+            _kernel.ResolveDependencies();
+            personValidation = _kernel.Get<IValidationService<Person>>();
+        }
+
+        [TestCase("12345", "Alexey", 19)]
+        public void Service_Where_Person_Is_Correct(string passportId, string name, int age)
+        {
+            Person person = new Person(passportId, name, age);
             ValidationResult result = personValidation.Validate(person);
 
-            int expectedErrorsCount = 0;
-            int actualErrorsCount = result.ValidationErrors.Count;
+            Assert.IsNull(result.ValidationErrors);
+        }
+          
+        [TestCase("12345", "Alexey", 160, 1)]
+        [TestCase(null, "Alexey", 19, 2)]
+        [TestCase(null, "Alexey", 160, 3)]
+        public void Service_Where_Person_Is_Incorrect(string passportId, string name, int age, int expectedErrorsCount)
+        {
+            Person person = new Person(passportId, name, age);
+            ValidationResult result = personValidation.Validate(person);
+
+            int actualErrorsCount = result.ValidationErrors.Length;
 
             Assert.AreEqual(expectedErrorsCount, actualErrorsCount);
         }
 
-        [Test]
-        public void Service_Where_Person_IsIncorrect()
+        [TestCase("12345", "Alexey", 19, true)]
+        [TestCase(null, "Alexey", 19, false)]
+        public void CustomNotNullAttribute_With_Person(string passportId, string name, int age, bool expectedResult)
         {
-            Person person = new Person("12345", "Alexey", 19);
-            person.PassportId = null;
-            ValidationService<Person> personValidation = new ValidationService<Person>();
-            ValidationResult result = personValidation.Validate(person);
-
-            int expectedErrorsCount = 2;
-            int actualErrorsCount = result.ValidationErrors.Count;
-
-            Assert.AreEqual(expectedErrorsCount, actualErrorsCount);
-        }
-
-        [Test]
-        public void CustomNotNullAttribute_Where_Person_IsCorrect()
-        {
-            Person person = new Person("12345", "Alexey", 19);
+            Person person = new Person(passportId, name, age);
             CustomNotNullAttribute attribute = new CustomNotNullAttribute();
 
             bool actualValidationResult = attribute.IsValid(person.PassportId);
 
-            Assert.IsTrue(actualValidationResult);
+            Assert.AreEqual(actualValidationResult, expectedResult);
         }
 
-        [Test]
-        public void CustomNotNullAttribute_Where_Person_IsIncorrect()
+        [TestCase("12345", "Alexey", 19, true)]
+        [TestCase("12345", "Alexey", 160, false)]
+        public void CustomRangeAttribute_With_Person(string passportId, string name, int age, bool expectedResult)
         {
-            Person person = new Person("12345", "Alexey", 19);
-            person.PassportId = null;
-
-            CustomNotNullAttribute attribute = new CustomNotNullAttribute();
-
-            bool actualValidationResult = attribute.IsValid(person.PassportId);
-
-            Assert.IsFalse(actualValidationResult);
-        }
-
-        [Test]
-        public void CustomRangeAttribute_Where_Person_IsCorrect()
-        {
-            Person person = new Person("12345", "Alexey", 19);
-
-            CustomRangeAttribute attribute = new CustomRangeAttribute(0,150);
-
-            bool actualValidationResult = attribute.IsValid(person.Age);
-            Assert.IsTrue(actualValidationResult);
-        }
-
-        [Test]
-        public void CustomRangeAttribute_Where_Person_IsIncorrect()
-        {
-            Person person = new Person("12345", "Alexey", 19);
-            person.Age = 160;
-
+            Person person = new Person(passportId, name, age);
             CustomRangeAttribute attribute = new CustomRangeAttribute(0, 150);
 
             bool actualValidationResult = attribute.IsValid(person.Age);
-            Assert.IsFalse(actualValidationResult);
+
+            Assert.AreEqual(actualValidationResult, expectedResult);
         }
 
-        [Test]
-        public void CustomStringLengthAttribute_Where_Person_IsCorrect()
+        [TestCase("12345", "Alexey", 19, true)]
+        [TestCase("12345", "Al", 19, false)]
+        public void CustomStringLengthAttribute_With_Person(string passportId, string name, int age, bool expectedResult)
         {
-            Person person = new Person("12345", "Alexey", 19);
+            Person person = new Person(passportId, name, age);
 
             CustomStringLengthAttribute attribute = new CustomStringLengthAttribute(5,10);
 
             bool actualValidationResult = attribute.IsValid(person.Name);
-            
-            Assert.IsTrue(actualValidationResult);
+
+            Assert.AreEqual(actualValidationResult, expectedResult);
         }
 
         [Test]
-        public void CustomStringLengthAttribute_Where_Person_IsIncorrect()
+        public void Service_Where_Logger_Works()
         {
-            Person person = new Person("12345", "Alexey", 19);
-            person.Name = "a";
+            Person person = new Person("1234", "Alexey", 170);
 
-            CustomStringLengthAttribute attribute = new CustomStringLengthAttribute(5, 10);
+            var loggerMock = new Mock<ILogger>();  
+            ValidationService<Person> service = new ValidationService<Person>(loggerMock.Object);
 
-            bool actualValidationResult = attribute.IsValid(person.Name);
+            loggerMock.Setup(action => action.Warn(It.IsAny<string>()));
+            service.Validate(person);
 
-            Assert.IsFalse(actualValidationResult);
+            loggerMock.Verify(a => a.Warn(It.IsAny<string>()), Times.Once);
         }
 
         [Test]
         public void Service_Where_Person_IsNull()
-            => Assert.Throws<ArgumentNullException>(() => new ValidationService<Person>().Validate(null));
+            => Assert.Throws<ArgumentNullException>(() => personValidation.Validate(null));
+
+        [Test]
+        public void CustomNotRangeAttribute_Where_Minimum_Is_Bigger_Than_Maximum()
+            => Assert.Throws<ArgumentException>(() => new CustomRangeAttribute(10, 2));
+
+        [Test]
+        public void CustomStringLengthAttribute_Where_Minimum_Is_Bigger_Than_Maximum()
+            => Assert.Throws<ArgumentException>(() => new CustomStringLengthAttribute(10, 2));
+
+        [Test]
+        public void CustomStringLengthAttribute_Where_Minimum_Is_Less_Than_0()
+            => Assert.Throws<ArgumentOutOfRangeException>(() => new CustomStringLengthAttribute(-1, 2));
+
+        [Test]
+        public void CustomStringLengthAttribute_Where_Maximum_Is_Less_Than_0()
+            => Assert.Throws<ArgumentOutOfRangeException>(() => new CustomStringLengthAttribute(1, -2));
     }
 }

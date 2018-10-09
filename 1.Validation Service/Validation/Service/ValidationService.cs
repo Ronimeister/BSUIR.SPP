@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Loggers;
-using Loggers.Entities;
 using Validation.Interfaces;
 using Validation.Service.Helpers;
 
@@ -16,13 +17,7 @@ namespace Validation.Service
     {
         private readonly ILogger _logger;
 
-        /// <summary>
-        /// Standart .ctor of <see cref="ValidationService{T}"/> class
-        /// </summary>
-        public ValidationService()
-        {
-            _logger = new NLogLogger();
-        }
+        private List<string> _errors;
 
         /// <summary>
         /// Standart .ctor of <see cref="ValidationService{T}"/> class
@@ -58,30 +53,14 @@ namespace Validation.Service
         private ValidationResult ValidateInner(T value)
         {
             bool result = true;
-            List<string> errors = new List<string>();
 
             //Searching for all class attributes
-            foreach (var attr in ServiceHelper.GetCustomAttributes(value))
-            {
-                if (attr is IValidationAttribute attribute)
-                {
-                    ValidateAttribute(attribute, value, errors, ref result);
-                }
-            }
+            value.GetCustomAttributes().ToList().ForEach(attr => ValidateAttribute(attr, value, ref result));
 
             //Searching for all class properties attributes
-            foreach (var prop in ServiceHelper.GetTypeProperties(value))
-            {
-                if (prop.CustomAttributes != null)
-                {
-                    if (!ValidateProperty(prop, value, errors))
-                    {
-                        result = false;
-                    }
-                }
-            }
+            value.GetTypeProperties().ToList().ForEach(prop => ValidatePropertyInner(prop, value, ref result));
 
-            return new ValidationResult(result, errors);
+            return CreateValidationResult(result, _errors);
         }
 
         /// <summary>
@@ -91,19 +70,24 @@ namespace Validation.Service
         /// <param name="instance">Object that contains that property</param>
         /// <param name="errorList">List of errors during the validation</param>
         /// <returns>Is property valid or not</returns>
-        private bool ValidateProperty(PropertyInfo property, T instance, List<string> errorList)
+        private bool ValidateProperty(PropertyInfo property, T instance)
         {
             bool result = true;
 
-            foreach (var a in ServiceHelper.GetCustomAttributes(property))
-            {
-                if (a is IValidationAttribute attribute)
-                {
-                    ValidateAttribute(attribute, ServiceHelper.GetPropertyValue(property, instance), errorList, ref result);
-                }
-            }
+            property.GetCustomAttributes().ToList().ForEach(a => ValidateAttribute(a, property.GetPropertyValue(instance), ref result));
 
             return result;
+        }
+
+        private void ValidatePropertyInner(PropertyInfo prop, T value, ref bool result)
+        {
+            if (prop.CustomAttributes != null)
+            {
+                if (!ValidateProperty(prop, value))
+                {
+                    result = false;
+                }
+            }
         }
 
         /// <summary>
@@ -113,15 +97,31 @@ namespace Validation.Service
         /// <param name="value">Value needed to be validated</param>
         /// <param name="errorList">List of validation errors</param>
         /// <param name="result">The result of validation</param>
-        private void ValidateAttribute(IValidationAttribute attribute, object value, List<string> errorList, ref bool result)
+        private void ValidateAttribute(IValidationAttribute attribute, object value, ref bool result)
         {
             if (!attribute.IsValid(value))
             {
-                errorList.Add(attribute.ErrorMessage);
+                if (_errors == null)
+                {
+                    _errors = new List<string>();
+                }
+
+                _errors.Add(attribute.ErrorMessage);
                 _logger.Warn(attribute.ErrorMessage);
 
                 result = false;
             }
+        }
+
+        private ValidationResult CreateValidationResult(bool result, List<string> errors)
+        {
+            ValidationResult validationResult = new ValidationResult(result, _errors);
+            if (_errors != null)
+            {
+                _errors.Clear();
+            }
+
+            return validationResult;
         }
     }
 }

@@ -3,19 +3,22 @@ using Validation.Interfaces;
 
 namespace Validation.Attributes
 {
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    /// <summary>
+    /// Attribute that check's some object for null equality
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class CustomNotNullAttribute : Attribute, IValidationAttribute
     {
-        public string ErrorMessage => "Object shouldn't be equal to null!";
+        /// <summary>
+        /// Validation error message
+        /// </summary>
+        public string ErrorMessage => Resources.Resource.CustomNotNullAttributeErrorMessage;
 
-        public bool IsValid(object value)
-        {
-            if (value == null)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        /// <summary>
+        /// Validation method
+        /// </summary>
+        /// <param name="value">Object need to be validated</param>
+        /// <returns>Result of validation</returns>
+        public bool IsValid(object value) => value != null;
     }
 }

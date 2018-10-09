@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loggers", "Loggers\Loggers.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Tests", "Validation.Tests\Validation.Tests.csproj", "{47886D2E-D47D-4C0E-B07D-EE0957D23381}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp2", "ConsoleApp2\ConsoleApp2.csproj", "{40F11D5A-EFC7-43CA-935B-A91642523B57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIResolver", "DIResolver\DIResolver.csproj", "{39F83CD8-7A97-467E-B0AA-18206C382B85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{47886D2E-D47D-4C0E-B07D-EE0957D23381}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47886D2E-D47D-4C0E-B07D-EE0957D23381}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47886D2E-D47D-4C0E-B07D-EE0957D23381}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40F11D5A-EFC7-43CA-935B-A91642523B57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40F11D5A-EFC7-43CA-935B-A91642523B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40F11D5A-EFC7-43CA-935B-A91642523B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40F11D5A-EFC7-43CA-935B-A91642523B57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39F83CD8-7A97-467E-B0AA-18206C382B85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39F83CD8-7A97-467E-B0AA-18206C382B85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39F83CD8-7A97-467E-B0AA-18206C382B85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39F83CD8-7A97-467E-B0AA-18206C382B85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

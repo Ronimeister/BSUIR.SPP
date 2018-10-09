@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9EA12CC4-D32B-4D25-B6E5-EBCF0FF3453A}</ProjectGuid>
+    <ProjectGuid>{39F83CD8-7A97-467E-B0AA-18206C382B85}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Validation</RootNamespace>
-    <AssemblyName>Validation</AssemblyName>
+    <RootNamespace>DIResolver</RootNamespace>
+    <AssemblyName>DIResolver</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,8 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,33 +43,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\CustomNotNullAttribute.cs" />
-    <Compile Include="Attributes\CustomRangeAttribute.cs" />
-    <Compile Include="Attributes\CustomRequiredAttribute.cs" />
-    <Compile Include="Attributes\CustomStringLengthAttribute.cs" />
-    <Compile Include="Interfaces\IValidationAttribute.cs" />
-    <Compile Include="Interfaces\IValidationService.cs" />
+    <Compile Include="ResolverConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Resource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resource.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Service\Helpers\ServiceHelper.cs" />
-    <Compile Include="Service\Helpers\ValidationResult.cs" />
-    <Compile Include="Service\ValidationService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Loggers\Loggers.csproj">
-      <Project>{b249bcf2-f95d-4a4c-81ed-d35480229e16}</Project>
+      <Project>{B249BCF2-F95D-4A4C-81ED-D35480229E16}</Project>
       <Name>Loggers</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Resource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="..\Validation\Validation.csproj">
+      <Project>{9EA12CC4-D32B-4D25-B6E5-EBCF0FF3453A}</Project>
+      <Name>Validation</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
